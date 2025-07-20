@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 
-import { byCity, byCoords } from './weather.js';   // ⬅️ new helpers
+import { byCity, byCoords } from './routes/weather.js';   // ⬅️ new helpers
 import spotifyRouter from './routes/spotify.js';
 
 const app  = express();
