@@ -1,36 +1,42 @@
+// spotifyAuth.js - Spotify App Authentication
 import fetch from 'node-fetch';
-import dotenv from 'dotenv';
-dotenv.config();
 
-let cache = null;
+let accessToken = null;
+let tokenExpiry = 0;
 
-export default async function getAppAccessToken () {
-  if (cache && cache.expires_at > Date.now()) return cache.access_token;
+export default async function getAppAccessToken() {
+  // Return cached token if still valid
+  if (accessToken && Date.now() < tokenExpiry) {
+    return accessToken;
+  }
 
-  const auth64 = Buffer.from(
-    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-  ).toString('base64');
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
-  const res = await fetch('https://accounts.spotify.com/api/token', {
+  if (!clientId || !clientSecret) {
+    throw new Error('Missing Spotify credentials in environment variables');
+  }
+
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  
+  const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
-      Authorization: `Basic ${auth64}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: 'grant_type=client_credentials'
   });
 
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`token request failed: ${res.status} ${txt}`);
+  if (!response.ok) {
+    throw new Error(`Spotify auth failed: ${response.status}`);
   }
 
-  const data = await res.json();
-  cache = {
-    access_token: data.access_token,
-    expires_at:   Date.now() + (data.expires_in - 60) * 1000
-  };
-
-  console.log('✅ Successfully obtained Spotify access token');
-  return cache.access_token;
+  const data = await response.json();
+  
+  // Cache the token with some buffer time
+  accessToken = data.access_token;
+  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000; // 60 second buffer
+  
+  return accessToken;
 }
