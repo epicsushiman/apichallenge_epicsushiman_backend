@@ -1,20 +1,20 @@
-require('dotenv').config();
-const express = require('express');
-const cors    = require('cors');          // ← new
-const app     = express();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
-/* ① CORS middleware – must come FIRST */
-app.use(cors({ origin: 'http://localhost:5173' }));   // dev URL of Vite
-// app.use(cors());   // (if you’re okay with "*" in dev)
+import weatherRoutes from './routes/weather.js';
+import spotifyRoutes from './routes/spotify.js';
 
+dotenv.config();
+
+const app = express();
+app.use(cors());
 app.use(express.json());
 
-/* existing routes */
-app.use('/api/weather', require('./routes/weather'));
-app.use('/api/spotify', require('./routes/spotify'));
-
-/* basic health check (optional) */
-app.get('/', (_, res) => res.send('Travel-Mood backend alive'));
+app.use('/api/weather', weatherRoutes);
+app.use('/api/spotify', spotifyRoutes);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀  Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀  Server running on port ${PORT}`);
+});
