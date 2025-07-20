@@ -1,40 +1,42 @@
-import { Router } from 'express';
-import fetch from 'node-fetch';
+import express from 'express';
+import fetch   from 'node-fetch';
+const router = express.Router();
 
-const router = Router();
-const API_KEY  = process.env.WEATHER_API_KEY;           // set this in .env
-const API_BASE = 'https://api.pirateweather.net/forecast';
-
-/** basic “city name → lat/lon” helper using OpenStreetMap / Nominatim */
-async function geocode(city) {
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?` +
-    `q=${encodeURIComponent(city)}&format=json&limit=1`
-  );
-  if (!res.ok) throw new Error('geocoding failed');
-  const [row] = await res.json();
-  if (!row) throw new Error('city not found');
-  return { lat: row.lat, lon: row.lon };
-}
-
-router.get('/:city', async (req, res) => {
+/* 1️⃣  /coords MUST come **before** /:city so it isn’t
+       swallowed by the dynamic “city” param */
+router.get('/coords', async (req, res, next) => {
+  const { lat, lon } = req.query;
+  if (!lat || !lon) return res.status(400).json({ error: 'Missing lat/lon'});
   try {
-    const { lat, lon } = await geocode(req.params.city);
+    const url = `https://api.pirateweather.net/forecast/${process.env.PW_KEY}/${lat},${lon}?units=si`;
+    const data = await fetch(url).then(r => r.json());
+    res.json(normalise(data));
+  } catch (err) { next(err); }
+});
 
-    const url   = `${API_BASE}/${API_KEY}/${lat},${lon}?units=metric`;
-    const wRes  = await fetch(url);
-    if (!wRes.ok) throw new Error('weather fetch failed');
-    const json  = await wRes.json();
-    const curr  = json.currently || json;
+router.get('/:city', async (req, res, next) => {
+  try {
+    const geo  = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(req.params.city)}&count=1`
+    ).then(r => r.json());
 
-    res.json({
-      description: curr.summary.toLowerCase(),
-      temp: curr.temperature
-    });
-  } catch (err) {
-    console.error('weather error:', err);
-    res.status(500).json({ error: err.message });
-  }
+    if (!geo.results?.length) return res.status(404).json({ error: 'city not found' });
+
+    const { latitude, longitude, name, country } = geo.results[0];
+    const pwUrl = `https://api.pirateweather.net/forecast/${process.env.PW_KEY}/${latitude},${longitude}?units=si`;
+    const wx    = await fetch(pwUrl).then(r => r.json());
+    res.json(normalise(wx, `${name}, ${country}`));
+  } catch (err) { next(err); }
 });
 
 export default router;
+
+/* helper: shape the response exactly the way your React code expects */
+function normalise(wx, city = '') {
+  const icon = wx.currently.icon ?? 'clear';
+  return {
+    city,
+    description: icon.replace(/-/g, ' '),
+    temp:        Math.round(wx.currently.temperature),
+  };
+}

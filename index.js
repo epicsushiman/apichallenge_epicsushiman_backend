@@ -1,20 +1,18 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 
-import weatherRoutes from './routes/weather.js';
-import spotifyRoutes from './routes/spotify.js';
+import weatherRouter from './routes/weather.js';
+import spotifyRouter from './routes/spotify.js';
 
-dotenv.config();
+const app   = express();
+const PORT  = process.env.PORT || 3000;
 
-const app = express();
 app.use(cors());
-app.use(express.json());
+app.use('/api/weather',  weatherRouter);
+app.use('/api/spotify',  spotifyRouter);
 
-app.use('/api/weather', weatherRoutes);
-app.use('/api/spotify', spotifyRoutes);
+// health check so Render’s first probe gets 200
+app.get('/api', (_, res) => res.json({ ok: true }));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀  Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀  Server running on ${PORT}`));
