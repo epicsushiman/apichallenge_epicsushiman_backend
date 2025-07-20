@@ -1,0 +1,26 @@
+{
+    "name": "travel-mood-backend",
+    "version": "1.0.1",
+    "description": "API server that marries Pirate Weather data with Spotify mood playlists and travel quotes.",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "type": "commonjs",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.0",
+        "express": "^5.1.0",
+        "node-fetch": "^2.6.12"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.10"
+    }
+}
