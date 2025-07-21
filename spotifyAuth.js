@@ -1,15 +1,12 @@
-// backend/spotifyAuth.js
 import fetch from 'node-fetch';
 
-/*  ▸ Cached app-only token  
-    We request Client-Credentials flow once and refresh it 60 s before expiry. */
+
 let cached = { 
-  value: null,            // the Bearer token
-  expiresAt: 0            // ms-epoch
+  value: null,            
+  expiresAt: 0            
 };
 
 export async function getAppToken() {
-  // Check if we have a valid cached token (with 60s buffer)
   if (cached.value && Date.now() < cached.expiresAt - 60_000) {
     console.log('Using cached Spotify token');
     return cached.value;
@@ -70,7 +67,6 @@ export async function getAppToken() {
   } catch (error) {
     console.error('Error getting Spotify token:', error);
     
-    // Clear cached token on error
     cached = { value: null, expiresAt: 0 };
     
     throw error;

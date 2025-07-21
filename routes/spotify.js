@@ -1,4 +1,3 @@
-// backend/routes/spotify.js
 import { Router } from 'express';
 import fetch from 'node-fetch';
 import { getAppToken } from '../spotifyAuth.js';
@@ -8,7 +7,6 @@ const router = Router();
 function mood(desc = '') {
   const d = desc.toLowerCase();
   
-  // More comprehensive weather matching
   if (d.includes('clear') || d.includes('sunny')) return 'feel-good summer';
   if (d.includes('cloud') || d.includes('overcast')) return 'lofi chill';
   if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) return 'rainy day';
@@ -17,7 +15,6 @@ function mood(desc = '') {
   if (d.includes('mist') || d.includes('fog') || d.includes('haze')) return 'ambient calm';
   if (d.includes('wind') || d.includes('breezy')) return 'upbeat indie';
   
-  // Default fallback
   return 'chill vibes';
 }
 
@@ -28,11 +25,9 @@ router.get('/playlist', async (req, res) => {
     
     console.log(`Weather: "${weatherDesc}" -> Mood: "${searchQuery}"`);
     
-    // Get Spotify token
     const token = await getAppToken();
     console.log('Successfully obtained Spotify token');
     
-    // Search for playlists
     const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=playlist&limit=20`;
     console.log('Searching Spotify with URL:', searchUrl);
     
@@ -81,7 +76,6 @@ router.get('/playlist', async (req, res) => {
       return res.status(404).json({ error: 'No matching playlists found' });
     }
 
-    // FIXED: Find a playlist with tracks, handling null values properly
     const playlist = items.find(p => p?.tracks?.total > 0) || items[0];
     
     if (!playlist?.external_urls?.spotify) {
@@ -104,7 +98,6 @@ router.get('/playlist', async (req, res) => {
       weather: req.query.weather
     });
     
-    // Return more specific error messages
     if (err.message.includes('Missing Spotify env vars')) {
       res.status(500).json({ error: 'Spotify API not configured properly' });
     } else if (err.message.includes('Spotify auth')) {
