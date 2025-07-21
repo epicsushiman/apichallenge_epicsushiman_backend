@@ -1,50 +1,40 @@
-// index.js  – fully rewritten
 import express from 'express';
-import cors from 'cors';
+import cors    from 'cors';
 import 'dotenv/config';
 
-import { byCity, byCoords } from './routes/weather.js';
-import spotifyRouter        from './routes/spotify.js';
+import { byCity, byCoords } from './weather.js';  // or './routes/weather.js'
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-/* ───────────────  WEATHER  ───────────────
-   Put the *specific*  /coords  route first, so
-   it isn’t swallowed by the generic  /:city  param.
-*/
+/* ───── WEATHER ────  put the SPECIFIC route first ───── */
 
-// GET /api/weather/coords?lat=..&lon=..
 app.get('/api/weather/coords', async (req, res) => {
   const { lat, lon } = req.query;
-  if (!lat || !lon) {
-    return res.status(400).json({ error: 'lat and lon query params required' });
-  }
+  if (!lat || !lon) return res.status(400).json({ error: 'lat and lon query params required' });
 
   try {
-    const data = await byCoords(lat, lon);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.json(await byCoords(lat, lon));
+  } catch (e) {
+    res.status(400).json({ error: e.message });
   }
 });
 
-// GET /api/weather/:city
 app.get('/api/weather/:city', async (req, res) => {
   try {
-    const data = await byCity(req.params.city);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.json(await byCity(req.params.city));
+  } catch (e) {
+    res.status(400).json({ error: e.message });
   }
 });
 
-/* ───────────────  SPOTIFY  ─────────────── */
+/* ───── SPOTIFY ──── */
+import spotifyRouter from './spotify.js';
 app.use('/api/spotify', spotifyRouter);
 
-/* health-check for Render */
+/* simple health-check so /api doesn’t 404 */
 app.get('/api', (_, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => console.log(`🚀  Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀  server on ${PORT}`));
