@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-/* ───── WEATHER ────  put the SPECIFIC route first ───── */
 
 app.get('/api/weather/coords', async (req, res) => {
   const { lat, lon } = req.query;
@@ -30,11 +29,9 @@ app.get('/api/weather/:city', async (req, res) => {
   }
 });
 
-/* ───── SPOTIFY ──── */
 import spotifyRouter from './routes/spotify.js';
 app.use('/api/spotify', spotifyRouter);
 
-/* simple health-check so /api doesn’t 404 */
 app.get('/api', (_, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => console.log(`🚀  server on ${PORT}`));
