@@ -31,7 +31,7 @@ app.get('/api/weather/:city', async (req, res) => {
 });
 
 /* ───── SPOTIFY ──── */
-import spotifyRouter from './spotify.js';
+import spotifyRouter from './routes/spotify.js';
 app.use('/api/spotify', spotifyRouter);
 
 /* simple health-check so /api doesn’t 404 */
