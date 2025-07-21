@@ -81,9 +81,8 @@ router.get('/playlist', async (req, res) => {
       return res.status(404).json({ error: 'No matching playlists found' });
     }
 
-    // Find a playlist with tracks, or use the first one
-    // Fix: Check if tracks exists and is not null before accessing total
-    const playlist = items.find(p => p.tracks && p.tracks.total > 0) || items[0];
+    // FIXED: Find a playlist with tracks, handling null values properly
+    const playlist = items.find(p => p?.tracks?.total > 0) || items[0];
     
     if (!playlist?.external_urls?.spotify) {
       console.error('Playlist found but no Spotify URL available');
